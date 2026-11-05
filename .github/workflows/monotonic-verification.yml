@@ -20,16 +20,25 @@ jobs:
           test -z "$(gofmt -l lib/netext/httpext/tracer.go lib/netext/httpext/tracer_test.go)"
           make lint
   race-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: base
+            revision: 9db074b62e1ef56743080b6cb0c701a2c5388af5
+          - name: patched
+            revision: b331ee03b1e1ca90dbec24910e03ef82791cac0c
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: b331ee03b1e1ca90dbec24910e03ef82791cac0c
+          ref: ${{ matrix.revision }}
           persist-credentials: false
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+      - uses: ./.github/actions/test-common
         with:
-          go-version: 1.26.x
+          go_version: 1.26.x
+          platform: ubuntu-24.04
       - uses: ./.github/actions/test
         with:
           platform: ubuntu-24.04
@@ -39,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          fetch-depth: 3
+          fetch-depth: 0
           persist-credentials: false
       - run: python3 .github/clock-verification/run.py 9db074b62e1ef56743080b6cb0c701a2c5388af5 b331ee03b1e1ca90dbec24910e03ef82791cac0c
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
